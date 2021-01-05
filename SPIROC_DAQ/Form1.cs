@@ -3699,5 +3699,61 @@ namespace SPIROC_DAQ
         {
 
         }
+
+        private void label196_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+        private void label186_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void ndl_sipm_hv_set_btn_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void mppc_hv_set_btn_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void NDL_SiPM_HV_value_input_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MPPC_HV_value_input_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void NDL_SiPM_HV_value_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MPPC_HV_value_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void NDL_SiPM_HV_status_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MPPC_HV_status_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
