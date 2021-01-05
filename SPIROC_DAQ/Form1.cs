@@ -53,7 +53,7 @@ namespace SPIROC_DAQ
         SC_board_manager slowControlManager = new SC_board_manager();
         SC_board_manager probeManager = new SC_board_manager();
         
-        List<SC_model> slowConfig_2B_store = new List<SC_model>();
+        List<SC_model> slowConfig_2B_store = new List<SC_model>();  //SC_model 定义在靠后位置
         List<SC_model_2E> slowConfig_2E_store = new List<SC_model_2E>();
         SC_model slowConfig_2B_1 = new SC_model();
         SC_model slowConfig_2B_2 = new SC_model();
@@ -3271,7 +3271,7 @@ namespace SPIROC_DAQ
             specialTaskTks.Dispose();       //clean up old token source
             specialTaskTks = new CancellationTokenSource(); // generate a new token
             if (check_USB() == false)
-            {
+            {   
                 MessageBox.Show("USB or Instrument is not connected", "Error");
                 return;
             }
@@ -3692,6 +3692,11 @@ namespace SPIROC_DAQ
             }
 
             textBox1.AppendText("The Slow clock leading block duration has been set to " + leadBlockTime_num.Value.ToString() + ".\n");
+
+        }
+
+        private void scSweepPara_select_SelectedIndexChanged(object sender, EventArgs e)
+        {
 
         }
     }

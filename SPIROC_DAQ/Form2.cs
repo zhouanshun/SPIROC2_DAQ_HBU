@@ -29,5 +29,10 @@ namespace SPIROC_DAQ
             confirm = false;
             this.Close();
         }
+
+        private void start1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

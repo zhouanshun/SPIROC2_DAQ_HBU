@@ -115,6 +115,7 @@
             this.start1.Name = "start1";
             this.start1.Size = new System.Drawing.Size(69, 21);
             this.start1.TabIndex = 2;
+            this.start1.TextChanged += new System.EventHandler(this.start1_TextChanged);
             // 
             // label3
             // 
