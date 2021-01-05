@@ -3716,12 +3716,12 @@ namespace SPIROC_DAQ
 
         }
 
-        private void ndl_sipm_hv_set_btn_Click(object sender, EventArgs e)
+        private void ndl_sipm_hv_set_btn_Click(object sender, EventArgs e) //修改NDL SiPM高压
         {
 
         }
 
-        private void mppc_hv_set_btn_Click(object sender, EventArgs e)
+        private void mppc_hv_set_btn_Click(object sender, EventArgs e) //修改MPPC高压
         {
 
         }
