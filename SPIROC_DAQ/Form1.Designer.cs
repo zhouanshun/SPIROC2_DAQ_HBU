@@ -699,6 +699,7 @@
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.Status_panel.SuspendLayout();
             this.HV_groupBox.SuspendLayout();
             this.USB_status_group.SuspendLayout();
@@ -6494,6 +6495,7 @@
             // 
             // hv_tab
             // 
+            this.hv_tab.Controls.Add(this.groupBox1);
             this.hv_tab.Controls.Add(this.tableLayoutPanel8);
             this.hv_tab.Location = new System.Drawing.Point(4, 40);
             this.hv_tab.Name = "hv_tab";
@@ -8933,6 +8935,15 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Location = new System.Drawing.Point(8, 137);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(555, 409);
+            this.groupBox1.TabIndex = 1;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "HV_DAC_Ctrl(for HBU_DIF)";
+            // 
             // Main_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -9736,6 +9747,7 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel19;
         private System.Windows.Forms.Label label195;
         private System.Windows.Forms.TextBox scanDuration_textbox;
+        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
 
