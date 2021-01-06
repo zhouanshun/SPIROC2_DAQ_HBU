@@ -3715,109 +3715,53 @@ namespace SPIROC_DAQ
             else {
                 fineThr = 1000;
             }
-            if (target_hvdac < current_hvdac_value)
+            while (Math.Abs(tmp_hvdac - target_hvdac) != 0)
             {
-                while (Math.Abs(tmp_hvdac - target_hvdac) > 20)
+                if (token.IsCancellationRequested != true)//如果输入的target dac过高则中断task
                 {
-                    if (token.IsCancellationRequested != true)//如果输入的target dac过高则中断task
+                    if (tmp_hvdac < fineThr)
                     {
-                        tmp_hvdac -= 20;
-                        HvDacSet(tmp_hvdac, ndlHvOn);
-                        if (ndlHvOn)
-                        {
-                            ndl_current_hvdac = tmp_hvdac;
-                        }
+                        if (target_hvdac > tmp_hvdac + 20)
+                            tmp_hvdac += 20; //20道约有1V
+                        else if (target_hvdac < tmp_hvdac - 20)
+                            tmp_hvdac -= 20;
+                        else if (target_hvdac > tmp_hvdac)
+                            tmp_hvdac += 1;
                         else
-                        {
-                            mppc_current_hvdac = tmp_hvdac;
-                        }
-                        if (ndlHvOn)
-                        {
-                            NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
-                            NDL_SiPM_HV_value.ForeColor = Color.Black;
-                            Thread.Sleep(500);
-                        }
-                        else
-                        {
-                            MPPC_HV_value.Text = tmp_hvdac.ToString();
-                            MPPC_HV_value.ForeColor = Color.Black;
-                            Thread.Sleep(500);
-                        }
+                            tmp_hvdac -= 1;
                     }
                     else
                     {
-                        break;
+                        if (target_hvdac > tmp_hvdac)
+                            tmp_hvdac += 1;
+                        else
+                            tmp_hvdac -= 1;
                     }
-                }
-                tmp_hvdac = target_hvdac;
-                HvDacSet(tmp_hvdac, ndlHvOn);
-                if (ndlHvOn)
-                {
-                    ndl_current_hvdac = tmp_hvdac;
-                }
-                else
-                {
-                    mppc_current_hvdac = tmp_hvdac;
-                }
-                if (ndlHvOn)
-                {
-                    NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
-                    NDL_SiPM_HV_value.ForeColor = Color.Black;
-                    Thread.Sleep(500);
-                }
-                else
-                {
-                    MPPC_HV_value.Text = tmp_hvdac.ToString();
-                    MPPC_HV_value.ForeColor = Color.Black;
-                    Thread.Sleep(500);
-                }
-            }
-            else
-            {
-                while (Math.Abs(tmp_hvdac - target_hvdac) != 0)
-                {
-                    if (token.IsCancellationRequested != true)//如果输入的target dac过高则中断task
+                    HvDacSet(tmp_hvdac, ndlHvOn);
+                    if (ndlHvOn)
                     {
-                        if (tmp_hvdac < fineThr)
-                        {
-                            if (target_hvdac > tmp_hvdac)
-                                tmp_hvdac += 20; //20道约有1V
-                            else
-                                tmp_hvdac -= 20;
-                        }
-                        else
-                        {
-                            if (target_hvdac > tmp_hvdac)
-                                tmp_hvdac += 1;
-                            else
-                                tmp_hvdac -= 1;
-                        }
-                        HvDacSet(tmp_hvdac, ndlHvOn);
-                        if (ndlHvOn)
-                        {
-                            ndl_current_hvdac = tmp_hvdac;
-                        }
-                        else
-                        {
-                            mppc_current_hvdac = tmp_hvdac;
-                        }
-                        if (ndlHvOn)
-                        {
-                            NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
-                            NDL_SiPM_HV_value.ForeColor = Color.Black;
-                            Thread.Sleep(500);
-                        }
-                        else
-                        {
-                            MPPC_HV_value.Text = tmp_hvdac.ToString();
-                            MPPC_HV_value.ForeColor = Color.Black;
-                            Thread.Sleep(500);
-                        }
+                        ndl_current_hvdac = tmp_hvdac;
                     }
                     else
                     {
-                        break;
+                        mppc_current_hvdac = tmp_hvdac;
                     }
+                    if (ndlHvOn)
+                    {
+                        NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
+                        NDL_SiPM_HV_value.ForeColor = Color.Black;
+                        Thread.Sleep(500);
+                    }
+                    else
+                    {
+                        MPPC_HV_value.Text = tmp_hvdac.ToString();
+                        MPPC_HV_value.ForeColor = Color.Black;
+                        Thread.Sleep(500);
+                    }
+                }
+                else
+                {
+                    break;
                 }
             }
             /*
