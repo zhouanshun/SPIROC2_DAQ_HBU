@@ -39,7 +39,8 @@ namespace SPIROC_DAQ
         private CancellationTokenSource scSweepTks = new CancellationTokenSource();
         private CancellationTokenSource specialTaskTks = new CancellationTokenSource();
         private CancellationTokenSource hv_setTks = new CancellationTokenSource();
-        private CancellationTokenSource dacSweepTks = new CancellationTokenSource(); 
+        private CancellationTokenSource dacSweepTks = new CancellationTokenSource();
+        private CancellationTokenSource hvDacSetTks = new CancellationTokenSource();
         private StringBuilder exceptionReport = new StringBuilder();
 
         private string rx_Command = @"\b[0-9a-fA-F]{4}\b";//match 16 bit Hex
@@ -49,6 +50,8 @@ namespace SPIROC_DAQ
 
         private int settingChoosen = 0;
         private decimal current_hv = 50;
+        private double ndl_current_hvdac = 200; //单位是道值 200 default hv for ndl_sipm is about 15V
+        private double mppc_current_hvdac = 860; //单位是道值 860 default hv for mppc is about 50V
         Iversion slowConfig;
         SC_board_manager slowControlManager = new SC_board_manager();
         SC_board_manager probeManager = new SC_board_manager();
@@ -3695,65 +3698,385 @@ namespace SPIROC_DAQ
 
         }
 
-        private void scSweepPara_select_SelectedIndexChanged(object sender, EventArgs e)
+        private void DAC_for_HV_set_smooth_threadFunc(CancellationToken token, bool turnOff, bool turnOn, bool ndlHvOn, double target_hvdac, double current_hvdac_value)
         {
+            double tmp_hvdac = current_hvdac_value; //default value is dependent on the use of hv
+            /*
+            if (turnOn)
+            {
+                hv_dac_switch(true);
+            }
+            */ //这部分功能暂时shut掉 等系统稳定再加 2020/01/05
 
+            double fineThr;
+            if (ndlHvOn){
+                fineThr = 240;
+            }
+            else {
+                fineThr = 1000;
+            }
+            if (target_hvdac < current_hvdac_value)
+            {
+                while (Math.Abs(tmp_hvdac - target_hvdac) > 20)
+                {
+                    if (token.IsCancellationRequested != true)//如果输入的target dac过高则中断task
+                    {
+                        tmp_hvdac -= 20;
+                        HvDacSet(tmp_hvdac, ndlHvOn);
+                        if (ndlHvOn)
+                        {
+                            ndl_current_hvdac = tmp_hvdac;
+                        }
+                        else
+                        {
+                            mppc_current_hvdac = tmp_hvdac;
+                        }
+                        if (ndlHvOn)
+                        {
+                            NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
+                            NDL_SiPM_HV_value.ForeColor = Color.Black;
+                            Thread.Sleep(500);
+                        }
+                        else
+                        {
+                            MPPC_HV_value.Text = tmp_hvdac.ToString();
+                            MPPC_HV_value.ForeColor = Color.Black;
+                            Thread.Sleep(500);
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                tmp_hvdac = target_hvdac;
+                HvDacSet(tmp_hvdac, ndlHvOn);
+                if (ndlHvOn)
+                {
+                    ndl_current_hvdac = tmp_hvdac;
+                }
+                else
+                {
+                    mppc_current_hvdac = tmp_hvdac;
+                }
+                if (ndlHvOn)
+                {
+                    NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
+                    NDL_SiPM_HV_value.ForeColor = Color.Black;
+                    Thread.Sleep(500);
+                }
+                else
+                {
+                    MPPC_HV_value.Text = tmp_hvdac.ToString();
+                    MPPC_HV_value.ForeColor = Color.Black;
+                    Thread.Sleep(500);
+                }
+            }
+            else
+            {
+                while (Math.Abs(tmp_hvdac - target_hvdac) != 0)
+                {
+                    if (token.IsCancellationRequested != true)//如果输入的target dac过高则中断task
+                    {
+                        if (tmp_hvdac < fineThr)
+                        {
+                            if (target_hvdac > tmp_hvdac)
+                                tmp_hvdac += 20; //20道约有1V
+                            else
+                                tmp_hvdac -= 20;
+                        }
+                        else
+                        {
+                            if (target_hvdac > tmp_hvdac)
+                                tmp_hvdac += 1;
+                            else
+                                tmp_hvdac -= 1;
+                        }
+                        HvDacSet(tmp_hvdac, ndlHvOn);
+                        if (ndlHvOn)
+                        {
+                            ndl_current_hvdac = tmp_hvdac;
+                        }
+                        else
+                        {
+                            mppc_current_hvdac = tmp_hvdac;
+                        }
+                        if (ndlHvOn)
+                        {
+                            NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
+                            NDL_SiPM_HV_value.ForeColor = Color.Black;
+                            Thread.Sleep(500);
+                        }
+                        else
+                        {
+                            MPPC_HV_value.Text = tmp_hvdac.ToString();
+                            MPPC_HV_value.ForeColor = Color.Black;
+                            Thread.Sleep(500);
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            /*
+            if (turnOff)
+            {
+                hv_switch(false);
+            }
+            */
         }
 
-        private void label196_Click(object sender, EventArgs e)
+        private void HvDacSet(double dacCode, bool ndlHvOn) //不同模式下高8bit内容不同
         {
+            //setting of dac
+            byte[] cmdbytes = new byte[2];
+            if (ndlHvOn)
+            {
+                cmdbytes[1] = 0x30;
+            }
+            else
+            {
+                cmdbytes[1] = 0x31;
+            }
+            int dacV = (int)dacCode;
+            byte value_h = (byte)(dacV >> 8);
+            byte value_l = (byte)dacV;
 
-        }
+            cmdbytes[0] = value_h;
+            CommandSend(cmdbytes, 2);
+            cmdbytes[0] = value_l;
+            CommandSend(cmdbytes, 2);
 
+            byte chn1_mask = 0x80;//标志位的配合使用，使得DAC的两个通道均有输出
+            value_h = (byte)(chn1_mask | value_h);
 
-        private void label186_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
-
+            cmdbytes[0] = value_h;
+            CommandSend(cmdbytes, 2);
+            cmdbytes[0] = value_l;
+            CommandSend(cmdbytes, 2);
         }
 
         private void ndl_sipm_hv_set_btn_Click(object sender, EventArgs e) //修改NDL SiPM高压
         {
+            bool status = (ndlSiPM_hvSwitch_btn.Tag.ToString() == "0");
+            if (status){
+                MessageBox.Show("open dac first");
+                NDL_SiPM_HV_value_input.Value = 0;
+                return;
+            }
+            hvDacSetTks.Cancel();
+            hvDacSetTks.Dispose();       //clean up old token source
+            hvDacSetTks = new CancellationTokenSource(); // generate a new token
+            double target_hvdac = (double)NDL_SiPM_HV_value_input.Value;
+            if (check_USB() == false)
+            {
+                MessageBox.Show("USB or Instrument is not connected", "Error");
+                return;
+            }
 
+            if (usbStatus == true)
+                try
+                {
+                    Task hvDac_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, target_hvdac, ndl_current_hvdac), hvDacSetTks.Token);
+                }
+                catch (AggregateException excption)
+                {
+
+                    foreach (var v in excption.InnerExceptions)
+                    {
+
+                        exceptionReport.AppendLine(excption.Message + " " + v.Message);
+                    }
+
+                }
         }
 
         private void mppc_hv_set_btn_Click(object sender, EventArgs e) //修改MPPC高压
         {
+            bool status = (mppc_hvSwitch.Tag.ToString() == "0");
+            if (status)
+            {
+                MessageBox.Show("open dac first");
+                MPPC_HV_value_input.Value = 0;
+                return;
+            }
+            hvDacSetTks.Cancel();
+            hvDacSetTks.Dispose();       //clean up old token source
+            hvDacSetTks = new CancellationTokenSource(); // generate a new token
+            double target_hvdac = (double)NDL_SiPM_HV_value_input.Value;
+            if (check_USB() == false)
+            {
+                MessageBox.Show("USB or Instrument is not connected", "Error");
+                return;
+            }
+
+            if (usbStatus == true)
+
+
+                try
+                {
+                    Task hvDac_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, target_hvdac, mppc_current_hvdac), hvDacSetTks.Token);
+
+                }
+                catch (AggregateException excption)
+                {
+
+                    foreach (var v in excption.InnerExceptions)
+                    {
+
+                        exceptionReport.AppendLine(excption.Message + " " + v.Message);
+                    }
+
+                }
+        }
+
+        private void ndlSiPM_hvSwitch_btn_Click(object sender, EventArgs e)
+        {
+            bool status;
+            string cmd = "";
+            status = (ndlSiPM_hvSwitch_btn.Tag.ToString() == "1");
+            if (myDevice == null)
+            {
+                NDL_SiPM_HVDAC_status.Text = "Unknown";
+                NDL_SiPM_HVDAC_status.ForeColor = Color.Black;
+            }
+            else if (status == true)
+            {
+                try
+                {
+                    hvDacSetTks.Cancel();
+                    hvDacSetTks.Dispose();       //clean up old token source
+                    hvDacSetTks = new CancellationTokenSource(); // generate a new token
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, 0, ndl_current_hvdac), hvDacSetTks.Token);
+
+                }
+                catch (AggregateException excption)
+                {
+
+                    foreach (var v in excption.InnerExceptions)
+                    {
+
+                        exceptionReport.AppendLine(excption.Message + " " + v.Message);
+                    }
+
+                }
+                ndlSiPM_hvSwitch_btn.Text = "Open";
+                NDL_SiPM_HVDAC_status.Text = "OFF";
+                NDL_SiPM_HVDAC_status.ForeColor = Color.Red;
+                ndlSiPM_hvSwitch_btn.Tag = 0;
+            }
+            else if (status == false)
+            {
+                try
+                {
+                    hvDacSetTks.Cancel();
+                    hvDacSetTks.Dispose();       //clean up old token source
+                    hvDacSetTks = new CancellationTokenSource(); // generate a new token
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, 180, 0), hvDacSetTks.Token);
+
+                }
+                catch (AggregateException excption)
+                {
+
+                    foreach (var v in excption.InnerExceptions)
+                    {
+
+                        exceptionReport.AppendLine(excption.Message + " " + v.Message);
+                    }
+
+                }
+                ndlSiPM_hvSwitch_btn.Text = "Close";
+                NDL_SiPM_HVDAC_status.Text = "ON";
+                NDL_SiPM_HVDAC_status.ForeColor = Color.Green;
+                ndlSiPM_hvSwitch_btn.Tag = 1;
+            }
+
+        }
+
+        private void mppc_hvSwitch_Click(object sender, EventArgs e)
+        {
+            bool status;
+            string cmd = "";
+            status = (mppc_hvSwitch.Tag.ToString() == "1");
+            /*if (myDevice == null)
+            {
+                NDL_SiPM_HVDAC_status.Text = "Unknown";
+                NDL_SiPM_HVDAC_status.ForeColor = Color.Black;
+            }
+            else*/
+            if (status == true)
+            {
+                try
+                {
+                    hvDacSetTks.Cancel();
+                    hvDacSetTks.Dispose();       //clean up old token source
+                    hvDacSetTks = new CancellationTokenSource(); // generate a new token
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, 0, mppc_current_hvdac), hvDacSetTks.Token);
+
+                }
+                catch (AggregateException excption)
+                {
+
+                    foreach (var v in excption.InnerExceptions)
+                    {
+
+                        exceptionReport.AppendLine(excption.Message + " " + v.Message);
+                    }
+
+                }
+                ndlSiPM_hvSwitch_btn.Text = "Open";
+                NDL_SiPM_HVDAC_status.Text = "OFF";
+                NDL_SiPM_HVDAC_status.ForeColor = Color.Red;
+                ndlSiPM_hvSwitch_btn.Tag = 0;
+            }
+            else if (status == false)
+            {
+                try
+                {
+                    hvDacSetTks.Cancel();
+                    hvDacSetTks.Dispose();       //clean up old token source
+                    hvDacSetTks = new CancellationTokenSource(); // generate a new token
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, 180, 0), hvDacSetTks.Token);
+
+                }
+                catch (AggregateException excption)
+                {
+
+                    foreach (var v in excption.InnerExceptions)
+                    {
+
+                        exceptionReport.AppendLine(excption.Message + " " + v.Message);
+                    }
+
+                }
+                ndlSiPM_hvSwitch_btn.Text = "Close";
+                NDL_SiPM_HVDAC_status.Text = "ON";
+                NDL_SiPM_HVDAC_status.ForeColor = Color.Green;
+                ndlSiPM_hvSwitch_btn.Tag = 1;
+            }
 
         }
 
         private void NDL_SiPM_HV_value_input_ValueChanged(object sender, EventArgs e)
         {
-
+            if(NDL_SiPM_HV_value_input.Value>480 | NDL_SiPM_HV_value_input.Value < 0)
+            {
+                MessageBox.Show("DAC code should be in 0 - 480", "Dangerous");
+                NDL_SiPM_HV_value_input.Value = 0;
+                return;
+            }
         }
 
         private void MPPC_HV_value_input_ValueChanged(object sender, EventArgs e)
         {
-
-        }
-
-        private void NDL_SiPM_HV_value_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void MPPC_HV_value_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void NDL_SiPM_HV_status_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void MPPC_HV_status_Click(object sender, EventArgs e)
-        {
-
+            if (NDL_SiPM_HV_value_input.Value > 1365 | NDL_SiPM_HV_value_input.Value < 0)
+            {
+                MessageBox.Show("DAC code should be in 0 - 1365", "Dangerous");
+                MPPC_HV_value_input.Value = 0;
+                return;
+            }
         }
     }
 }//tst
