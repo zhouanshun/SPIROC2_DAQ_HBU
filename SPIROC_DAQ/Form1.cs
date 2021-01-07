@@ -50,8 +50,8 @@ namespace SPIROC_DAQ
 
         private int settingChoosen = 0;
         private decimal current_hv = 50;
-        private double ndl_current_hvdac = 200; //单位是道值 200 default hv for ndl_sipm is about 15V
-        private double mppc_current_hvdac = 860; //单位是道值 860 default hv for mppc is about 50V
+        private double ndl_current_hvdac = 15; //
+        private double mppc_current_hvdac = 15; //
         Iversion slowConfig;
         SC_board_manager slowControlManager = new SC_board_manager();
         SC_board_manager probeManager = new SC_board_manager();
@@ -3698,9 +3698,9 @@ namespace SPIROC_DAQ
 
         }
 
-        private void DAC_for_HV_set_smooth_threadFunc(CancellationToken token, bool turnOff, bool turnOn, bool ndlHvOn, double target_hvdac, double current_hvdac_value)
+        private void DAC_for_HV_set_smooth_threadFunc(CancellationToken token, bool turnOff, bool turnOn, bool ndlHvOn, double target_hv, double current_hv_value)
         {
-            double tmp_hvdac = current_hvdac_value; //default value is dependent on the use of hv
+            double tmp_hv = current_hv_value; //default value is dependent on the use of hv
             /*
             if (turnOn)
             {
@@ -3710,51 +3710,51 @@ namespace SPIROC_DAQ
 
             double fineThr;
             if (ndlHvOn){
-                fineThr = 240;
+                fineThr = 22;
             }
             else {
-                fineThr = 1000;
+                fineThr = 68;
             }
-            while (Math.Abs(tmp_hvdac - target_hvdac) != 0)
+            while (Math.Abs(tmp_hv - target_hv) >= 0.05 )
             {
                 if (token.IsCancellationRequested != true)//如果输入的target dac过高则中断task
                 {
-                    if (tmp_hvdac < fineThr)
+                    if (tmp_hv < fineThr)
                     {
-                        if (target_hvdac > tmp_hvdac + 20)
-                            tmp_hvdac += 20; //20道约有1V
-                        else if (target_hvdac < tmp_hvdac - 20)
-                            tmp_hvdac -= 20;
-                        else if (target_hvdac > tmp_hvdac)
-                            tmp_hvdac += 1;
+                        if (target_hv > tmp_hv + 1)
+                            tmp_hv += 1; //20道约有1V
+                        else if (target_hv < tmp_hv - 1)
+                            tmp_hv -= 1;
+                        else if(target_hv > tmp_hv)
+                            tmp_hv += 0.1;
                         else
-                            tmp_hvdac -= 1;
+                            tmp_hv -= 0.1;
                     }
                     else
                     {
-                        if (target_hvdac > tmp_hvdac)
-                            tmp_hvdac += 1;
+                        if (target_hv > tmp_hv)
+                            tmp_hv += 0.1;
                         else
-                            tmp_hvdac -= 1;
+                            tmp_hv -= 0.1;
                     }
-                    HvDacSet(tmp_hvdac, ndlHvOn);
+                    HvDacSet(tmp_hv, ndlHvOn);
                     if (ndlHvOn)
                     {
-                        ndl_current_hvdac = tmp_hvdac;
+                        ndl_current_hvdac = tmp_hv;
                     }
                     else
                     {
-                        mppc_current_hvdac = tmp_hvdac;
+                        mppc_current_hvdac = tmp_hv;
                     }
                     if (ndlHvOn)
                     {
-                        NDL_SiPM_HV_value.Text = tmp_hvdac.ToString();
+                        NDL_SiPM_HV_value.Text = tmp_hv.ToString("f1");
                         NDL_SiPM_HV_value.ForeColor = Color.Black;
                         Thread.Sleep(500);
                     }
                     else
                     {
-                        MPPC_HV_value.Text = tmp_hvdac.ToString();
+                        MPPC_HV_value.Text = tmp_hv.ToString("f1");
                         MPPC_HV_value.ForeColor = Color.Black;
                         Thread.Sleep(500);
                     }
@@ -3772,7 +3772,7 @@ namespace SPIROC_DAQ
             */
         }
 
-        private void HvDacSet(double dacCode, bool ndlHvOn) //不同模式下高8bit内容不同
+        private void HvDacSet(double hv, bool ndlHvOn) //不同模式下高8bit内容不同
         {
             //setting of dac
             byte[] cmdbytes = new byte[2];
@@ -3784,7 +3784,16 @@ namespace SPIROC_DAQ
             {
                 cmdbytes[1] = 0x31;
             }
-            int dacV = (int)dacCode;
+            //int dacV = (int)((((hv) / 2.94 * 4095 *1.21) - 2.3285)/69.3327);
+            int dacV;
+            if (ndlHvOn)
+            {
+                dacV = (int)((hv + 0.5) * 23.98105365 - 55.7256);
+            }
+            else
+            {
+                dacV = (int)((hv - 0.1) * 24.121101007 - 55.7256);
+            }
             byte value_h = (byte)(dacV >> 8);
             byte value_l = (byte)dacV;
 
@@ -3813,7 +3822,7 @@ namespace SPIROC_DAQ
             hvDacSetTks.Cancel();
             hvDacSetTks.Dispose();       //clean up old token source
             hvDacSetTks = new CancellationTokenSource(); // generate a new token
-            double target_hvdac = (double)NDL_SiPM_HV_value_input.Value;
+            double target_hv = (double)NDL_SiPM_HV_value_input.Value;
             if (check_USB() == false)
             {
                 MessageBox.Show("USB or Instrument is not connected", "Error");
@@ -3823,7 +3832,7 @@ namespace SPIROC_DAQ
             if (usbStatus == true)
                 try
                 {
-                    Task hvDac_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, target_hvdac, ndl_current_hvdac), hvDacSetTks.Token);
+                    Task hvDac_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, target_hv, ndl_current_hvdac), hvDacSetTks.Token);
                 }
                 catch (AggregateException excption)
                 {
@@ -3849,7 +3858,7 @@ namespace SPIROC_DAQ
             hvDacSetTks.Cancel();
             hvDacSetTks.Dispose();       //clean up old token source
             hvDacSetTks = new CancellationTokenSource(); // generate a new token
-            double target_hvdac = (double)NDL_SiPM_HV_value_input.Value;
+            double target_hv = (double)MPPC_HV_value_input.Value;
             if (check_USB() == false)
             {
                 MessageBox.Show("USB or Instrument is not connected", "Error");
@@ -3861,7 +3870,7 @@ namespace SPIROC_DAQ
 
                 try
                 {
-                    Task hvDac_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, target_hvdac, mppc_current_hvdac), hvDacSetTks.Token);
+                    Task hvDac_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, target_hv, mppc_current_hvdac), hvDacSetTks.Token);
 
                 }
                 catch (AggregateException excption)
@@ -3893,7 +3902,7 @@ namespace SPIROC_DAQ
                     hvDacSetTks.Cancel();
                     hvDacSetTks.Dispose();       //clean up old token source
                     hvDacSetTks = new CancellationTokenSource(); // generate a new token
-                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, 0, ndl_current_hvdac), hvDacSetTks.Token);
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, 15, ndl_current_hvdac), hvDacSetTks.Token);
 
                 }
                 catch (AggregateException excption)
@@ -3918,7 +3927,7 @@ namespace SPIROC_DAQ
                     hvDacSetTks.Cancel();
                     hvDacSetTks.Dispose();       //clean up old token source
                     hvDacSetTks = new CancellationTokenSource(); // generate a new token
-                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, 180, 0), hvDacSetTks.Token);
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, true, 18, ndl_current_hvdac), hvDacSetTks.Token);
 
                 }
                 catch (AggregateException excption)
@@ -3944,12 +3953,12 @@ namespace SPIROC_DAQ
             bool status;
             string cmd = "";
             status = (mppc_hvSwitch.Tag.ToString() == "1");
-            /*if (myDevice == null)
+            if (myDevice == null)
             {
-                NDL_SiPM_HVDAC_status.Text = "Unknown";
-                NDL_SiPM_HVDAC_status.ForeColor = Color.Black;
+                MPPC_HVDAC_status.Text = "Unknown";
+                MPPC_HVDAC_status.ForeColor = Color.Black;
             }
-            else*/
+            else
             if (status == true)
             {
                 try
@@ -3957,7 +3966,7 @@ namespace SPIROC_DAQ
                     hvDacSetTks.Cancel();
                     hvDacSetTks.Dispose();       //clean up old token source
                     hvDacSetTks = new CancellationTokenSource(); // generate a new token
-                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, 0, mppc_current_hvdac), hvDacSetTks.Token);
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, 15, mppc_current_hvdac), hvDacSetTks.Token);
 
                 }
                 catch (AggregateException excption)
@@ -3970,10 +3979,10 @@ namespace SPIROC_DAQ
                     }
 
                 }
-                ndlSiPM_hvSwitch_btn.Text = "Open";
-                NDL_SiPM_HVDAC_status.Text = "OFF";
-                NDL_SiPM_HVDAC_status.ForeColor = Color.Red;
-                ndlSiPM_hvSwitch_btn.Tag = 0;
+                mppc_hvSwitch.Text = "Open";
+                MPPC_HVDAC_status.Text = "OFF";
+                MPPC_HVDAC_status.ForeColor = Color.Red;
+                mppc_hvSwitch.Tag = 0;
             }
             else if (status == false)
             {
@@ -3982,7 +3991,7 @@ namespace SPIROC_DAQ
                     hvDacSetTks.Cancel();
                     hvDacSetTks.Dispose();       //clean up old token source
                     hvDacSetTks = new CancellationTokenSource(); // generate a new token
-                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, 180, 0), hvDacSetTks.Token);
+                    Task hv_setting = Task.Factory.StartNew(() => this.DAC_for_HV_set_smooth_threadFunc(hvDacSetTks.Token, false, false, false, 50, mppc_current_hvdac), hvDacSetTks.Token);
 
                 }
                 catch (AggregateException excption)
@@ -3995,19 +4004,19 @@ namespace SPIROC_DAQ
                     }
 
                 }
-                ndlSiPM_hvSwitch_btn.Text = "Close";
-                NDL_SiPM_HVDAC_status.Text = "ON";
-                NDL_SiPM_HVDAC_status.ForeColor = Color.Green;
-                ndlSiPM_hvSwitch_btn.Tag = 1;
+                mppc_hvSwitch.Text = "Close";
+                MPPC_HVDAC_status.Text = "ON";
+                MPPC_HVDAC_status.ForeColor = Color.Green;
+                mppc_hvSwitch.Tag = 1;
             }
 
         }
 
         private void NDL_SiPM_HV_value_input_ValueChanged(object sender, EventArgs e)
         {
-            if(NDL_SiPM_HV_value_input.Value>480 | NDL_SiPM_HV_value_input.Value < 0)
+            if(NDL_SiPM_HV_value_input.Value>35 | NDL_SiPM_HV_value_input.Value < 15)
             {
-                MessageBox.Show("DAC code should be in 0 - 480", "Dangerous");
+                MessageBox.Show("HV should be in 15 - 35", "Dangerous");
                 NDL_SiPM_HV_value_input.Value = 0;
                 return;
             }
@@ -4015,9 +4024,9 @@ namespace SPIROC_DAQ
 
         private void MPPC_HV_value_input_ValueChanged(object sender, EventArgs e)
         {
-            if (NDL_SiPM_HV_value_input.Value > 1365 | NDL_SiPM_HV_value_input.Value < 0)
+            if (MPPC_HV_value_input.Value > 80 | MPPC_HV_value_input.Value < 15)
             {
-                MessageBox.Show("DAC code should be in 0 - 1365", "Dangerous");
+                MessageBox.Show("HV should be in 15 - 80", "Dangerous");
                 MPPC_HV_value_input.Value = 0;
                 return;
             }
