@@ -2708,7 +2708,8 @@ namespace SPIROC_DAQ
             if (ecalib_chn1_sel_btn.Tag.ToString() == "0")
             {
                 // config command
-                ecalib_cfg = (ecalib_cfg & 0xfe) + 0x01;    // set bit0 high , let calib signal be able to access chip1
+                //ecalib_cfg = (ecalib_cfg & 0xfe) + 0x01;    // set 1 , let calib signal be able to access chip1
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 0x00;  //set pulse[0] = 1 while ecalib_cfg[7:6] not changed
 
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
@@ -2727,7 +2728,9 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_chn1_sel_btn.Tag.ToString() == "1")
             {
-                ecalib_cfg = (ecalib_cfg & 0xfe) + 0x00;    // set bit0 low , let calib signal be not able to access chip1
+                //ecalib_cfg = (ecalib_cfg & 0xfe) + 0x00;    // set bit0 low , let calib signal be not able to access chip1
+
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 10;    //set pulse_en[0] = 0 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2749,7 +2752,8 @@ namespace SPIROC_DAQ
         {
             if (ecalib_chn2_sel_btn.Tag.ToString() == "0")
             {
-                ecalib_cfg = (ecalib_cfg & 0xfd) + (0x01<<1);    // set bit1 high , let calib signal be able to access chip2
+                //ecalib_cfg = (ecalib_cfg & 0xfd) + (0x02);    // set 2 high , let calib signal be able to access chip2
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 1; //set pulse_en[1] = 1 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2767,7 +2771,8 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_chn2_sel_btn.Tag.ToString() == "1")
             {
-                ecalib_cfg = ecalib_cfg & 0xfd ;    // set bit1 low , let calib signal be not able to access chip2
+                //ecalib_cfg = ecalib_cfg & 0xfd ;    // set bit1 low , let calib signal be not able to access chip2
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 11; //set pulse_en[1] = 0 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2789,7 +2794,8 @@ namespace SPIROC_DAQ
         {
             if (ecalib_chn3_sel_btn.Tag.ToString() == "0")
             {
-                ecalib_cfg = (ecalib_cfg & 0xfb) + (0x01<<2);    // set bit2 high , let calib signal be able to access chip3
+                //ecalib_cfg = (ecalib_cfg & 0xfb) + (0x01<<2);    // set bit2 high , let calib signal be able to access chip3
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 2; //set pulse_en[2] = 1 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2807,7 +2813,8 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_chn3_sel_btn.Tag.ToString() == "1")
             {
-                ecalib_cfg = ecalib_cfg & 0xfb;    // set bit2 low , let calib signal be not able to access chip3
+                //ecalib_cfg = ecalib_cfg & 0xfb;    // set bit2 low , let calib signal be not able to access chip3
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 12; //set pulse_en[2] = 0 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2829,7 +2836,8 @@ namespace SPIROC_DAQ
         {
             if (ecalib_chn6_sel_btn.Tag.ToString() == "0")
             {
-                ecalib_cfg = (ecalib_cfg & 0xdf) + (0x01<<5);    // set bit5 high , let calib signal be able to access chip6
+                //ecalib_cfg = (ecalib_cfg & 0xdf) + (0x01<<5);    // set bit5 high , let calib signal be able to access chip6
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 5; //set pulse_en[5] = 1 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2847,7 +2855,8 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_chn6_sel_btn.Tag.ToString() == "1")
             {
-                ecalib_cfg = ecalib_cfg & 0xdf;    // set bit5 low , let calib signal be not able to access chip6
+                //ecalib_cfg = ecalib_cfg & 0xdf;    // set bit5 low , let calib signal be not able to access chip6
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 15; //set pulse_en[5] = 0 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2869,7 +2878,8 @@ namespace SPIROC_DAQ
         {
             if (ecalib_chn4_sel_btn.Tag.ToString() == "0")
             {
-                ecalib_cfg = (ecalib_cfg & 0xf7) + (0x01<<3);    // set bit3 high , let calib signal be able to access chip4
+                //ecalib_cfg = (ecalib_cfg & 0xf7) + (0x01<<3);    // set bit3 high , let calib signal be able to access chip4
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 3; //set pulse_en[3] = 1 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2887,7 +2897,8 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_chn4_sel_btn.Tag.ToString() == "1")
             {
-                ecalib_cfg = ecalib_cfg & 0xf7;    // set bit3 low , let calib signal be not able to access chip4
+                //ecalib_cfg = ecalib_cfg & 0xf7;    // set bit3 low , let calib signal be not able to access chip4
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 13; //set pulse_en[3] = 0 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2909,7 +2920,8 @@ namespace SPIROC_DAQ
         {
             if (ecalib_chn5_sel_btn.Tag.ToString() == "0")
             {
-                ecalib_cfg = (ecalib_cfg & 0xef) + (0x01<<4);    // set bit4 high , let calib signal be able to access chip5
+                //ecalib_cfg = (ecalib_cfg & 0xef) + (0x01<<4);    // set bit4 high , let calib signal be able to access chip5
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 4; //set pulse_en[4] = 1 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2927,7 +2939,8 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_chn5_sel_btn.Tag.ToString() == "1")
             {
-                ecalib_cfg = ecalib_cfg & 0xef;    // set bit4 low , let calib signal be not able to access chip5
+                //ecalib_cfg = ecalib_cfg & 0xef;    // set bit4 low , let calib signal be not able to access chip5
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 14; //set pulse_en[4] = 0 while ecalib_cfg[7:6] not changed
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2944,12 +2957,131 @@ namespace SPIROC_DAQ
                 }
             }
         }
+        private void ecalib_chn7_sel_btn_Click(object sender, EventArgs e)
+        {
+            if (ecalib_chn7_sel_btn.Tag.ToString() == "0")
+            {
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 6; //set pulse_en[6] = 1 while ecalib_cfg[7:6] not changed
+                byte[] cmdbytes = new byte[2];
+                cmdbytes[1] = 0x12;
+                cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
+                if (CommandSend(cmdbytes, 2))
+                {
+                    ecalib_chn7_sel_btn.Tag = 1;
+                    ecalib_chn7_sel_btn.Text = "CHIP7 ON";
+                    ecalib_chn7_sel_btn.BackColor = Color.DarkGreen;
+                    //calib_trig.Enabled = true;
+                }
+                else
+                {
+                    MessageBox.Show("Can't send command");
+                }
+            }
+            else if (ecalib_chn7_sel_btn.Tag.ToString() == "1")
+            {
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 16; //set pulse_en[6] = 0 while ecalib_cfg[7:6] not changed
+                byte[] cmdbytes = new byte[2];
+                cmdbytes[1] = 0x12;
+                cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
+                if (CommandSend(cmdbytes, 2))
+                {
+                    ecalib_chn7_sel_btn.Tag = 0;
+                    ecalib_chn7_sel_btn.Text = "CHIP7 OFF";
+                    ecalib_chn7_sel_btn.BackColor = Color.DarkRed;
+                    //calib_trig.Enabled = false;
+                }
+                else
+                {
+                    MessageBox.Show("Can't send command");
+                }
+            }
+        }
+        private void ecalib_chn8_sel_btn_Click(object sender, EventArgs e)
+        {
+            if (ecalib_chn8_sel_btn.Tag.ToString() == "0")
+            {
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 7; //set pulse_en[7] = 1 while ecalib_cfg[7:6] not changed
+                byte[] cmdbytes = new byte[2];
+                cmdbytes[1] = 0x12;
+                cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
+                if (CommandSend(cmdbytes, 2))
+                {
+                    ecalib_chn8_sel_btn.Tag = 1;
+                    ecalib_chn8_sel_btn.Text = "CHIP8 ON";
+                    ecalib_chn8_sel_btn.BackColor = Color.DarkGreen;
+                    //calib_trig.Enabled = true;
+                }
+                else
+                {
+                    MessageBox.Show("Can't send command");
+                }
+            }
+            else if (ecalib_chn8_sel_btn.Tag.ToString() == "1")
+            {
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 17; //set pulse_en[7] = 0 while ecalib_cfg[7:6] not changed
+                byte[] cmdbytes = new byte[2];
+                cmdbytes[1] = 0x12;
+                cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
+                if (CommandSend(cmdbytes, 2))
+                {
+                    ecalib_chn8_sel_btn.Tag = 0;
+                    ecalib_chn8_sel_btn.Text = "CHIP8 OFF";
+                    ecalib_chn8_sel_btn.BackColor = Color.DarkRed;
+                    //calib_trig.Enabled = false;
+                }
+                else
+                {
+                    MessageBox.Show("Can't send command");
+                }
+            }
+        }
 
+        private void ecalib_chn9_sel_btn_Click(object sender, EventArgs e)
+        {
+            if (ecalib_chn9_sel_btn.Tag.ToString() == "0")
+            {
+                //ecalib_cfg = (ecalib_cfg & 0xef) + (0x01<<4);    // set bit4 high , let calib signal be able to access chip5
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 8; //set pulse_en[8] = 1 while ecalib_cfg[7:6] not changed
+                byte[] cmdbytes = new byte[2];
+                cmdbytes[1] = 0x12;
+                cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
+                if (CommandSend(cmdbytes, 2))
+                {
+                    ecalib_chn9_sel_btn.Tag = 1;
+                    ecalib_chn9_sel_btn.Text = "CHIP9 ON";
+                    ecalib_chn9_sel_btn.BackColor = Color.DarkGreen;
+                    //calib_trig.Enabled = true;
+                }
+                else
+                {
+                    MessageBox.Show("Can't send command");
+                }
+            }
+            else if (ecalib_chn9_sel_btn.Tag.ToString() == "1")
+            {
+                //ecalib_cfg = ecalib_cfg & 0xef;    // set bit4 low , let calib signal be not able to access chip5
+                ecalib_cfg = (ecalib_cfg & 0xc0) + 14; //set pulse_en[4] = 0 while ecalib_cfg[7:6] not changed
+                byte[] cmdbytes = new byte[2];
+                cmdbytes[1] = 0x12;
+                cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
+                if (CommandSend(cmdbytes, 2))
+                {
+                    ecalib_chn9_sel_btn.Tag = 0;
+                    ecalib_chn9_sel_btn.Text = "CHIP9 OFF";
+                    ecalib_chn9_sel_btn.BackColor = Color.DarkRed;
+                    //calib_trig.Enabled = false;
+                }
+                else
+                {
+                    MessageBox.Show("Can't send command");
+                }
+            }
+        }
         private void ecalib_en_btn_Click(object sender, EventArgs e)
         {
             if (ecalib_en_btn.Tag.ToString() == "0")
             {
-                ecalib_cfg = ecalib_cfg | 0x01 << 6;    //  operator '<<' is prior to '|', set bit6 to 1
+                ecalib_cfg = (ecalib_cfg | 0x3f) | 0x01 << 6;    //  operator '<<' is prior to '|', set bit6 to 1
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -2989,7 +3121,7 @@ namespace SPIROC_DAQ
         {
             if (ecalib_mod_label.Tag.ToString() == "0")     // 0 means ext_trig mode, so let's set cfg to auto-trigger mode
             {
-                ecalib_cfg = ecalib_cfg | 0x01 << 7;    //  operator '<<' is prior to '|', set bit7(mode bit) to 1
+                ecalib_cfg = (ecalib_cfg | 0x3f) | 0x01 << 7;    //  operator '<<' is prior to '|', set bit7(mode bit) to 1
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -4031,5 +4163,7 @@ namespace SPIROC_DAQ
                 return;
             }
         }
+
+       
     }
 }//tst

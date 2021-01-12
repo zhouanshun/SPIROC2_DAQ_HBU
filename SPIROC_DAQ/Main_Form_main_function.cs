@@ -1757,6 +1757,15 @@ namespace SPIROC_DAQ
                 Directory.CreateDirectory(fullPath);
 
             // enable all chip, and make amplifier active
+            CommandSend(0x1200, 2);
+            CommandSend(0x1201, 2);
+            CommandSend(0x1202, 2);
+            CommandSend(0x1203, 2);
+            CommandSend(0x1204, 2);
+            CommandSend(0x1205, 2);
+            CommandSend(0x1206, 2);
+            CommandSend(0x1207, 2);
+            CommandSend(0x1208, 2);
             CommandSend(0x127f + (autoSource << 7), 2); // auto-calib: off(0), sd: not shut down(1), chipx_en: enable(1)
 
             // Probe system initiate
@@ -1908,7 +1917,7 @@ namespace SPIROC_DAQ
                 }
             }                                                                                                                                                             
                           
-            CommandSend(0x1200, 2); // close calibration
+            CommandSend(0x1214, 2); // close calibration
             Acq_status_label.Text = "IDLE";
             Acq_status_label.ForeColor = Color.Black;
         }
