@@ -1756,16 +1756,8 @@ namespace SPIROC_DAQ
             if (!Directory.Exists(fullPath))
                 Directory.CreateDirectory(fullPath);
 
-            // enable all chip, and make amplifier active
-            CommandSend(0x1200, 2);
-            CommandSend(0x1201, 2);
-            CommandSend(0x1202, 2);
-            CommandSend(0x1203, 2);
-            CommandSend(0x1204, 2);
-            CommandSend(0x1205, 2);
-            CommandSend(0x1206, 2);
-            CommandSend(0x1207, 2);
-            CommandSend(0x1208, 2);
+            // enable all chip, and make amplifier active;
+            CommandSend(0x1215, 2);
             CommandSend(0x127f + (autoSource << 7), 2); // auto-calib: off(0), sd: not shut down(1), chipx_en: enable(1)
 
             // Probe system initiate

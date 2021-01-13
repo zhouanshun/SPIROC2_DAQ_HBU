@@ -3167,7 +3167,7 @@ namespace SPIROC_DAQ
         {
             if(ledcalib_en_btn.Tag.ToString() == "0")
             {
-                ledcalib_cfg = (ledcalib_cfg & 0xcf) + (0x01 << 4); //set bit[5,4] to 01
+                ledcalib_cfg = (ledcalib_cfg & 0xef) + (0x1 << 4); //set bit[4] to 1(amp not sd)  switch oe is set to 0 in logic
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x0b;
                 cmdbytes[0] = (byte)ledcalib_cfg; // only use low 8 bit
@@ -3185,7 +3185,7 @@ namespace SPIROC_DAQ
             }
             else if(ledcalib_en_btn.Tag.ToString() == "1")
             {
-                ledcalib_cfg = (ledcalib_cfg & 0xcf) + (0x10 << 4); //set bit[5..4] to 0b10
+                ledcalib_cfg = (ledcalib_cfg & 0xef) + (0x0 << 4); //set bit[4] to 0b0(amp sd)
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x0b;
                 cmdbytes[0] = (byte)ledcalib_cfg; // only use low 8 bit
@@ -3244,10 +3244,26 @@ namespace SPIROC_DAQ
             }
         }
 
-        private void ledcalib_group_sel_ValueChanged(object sender, EventArgs e)
+        private void ledcalib_group_sel_ValueChanged(object sender, EventArgs e) //3 mux chips and each chip controls 6 groups of LED
         {
-            int groupNum = int.Parse((ledcalib_group_sel.Value - 1).ToString());
-            ledcalib_cfg = (ledcalib_cfg & 0xf0) + groupNum;
+            int groupNum;
+            if (ledcalib_group_sel.Value < 7) //bit[2:0] pulse address for mux chip, {bit[5],bit[3]}==00 mux1 enable
+            {
+                groupNum = int.Parse((ledcalib_group_sel.Value - 1).ToString());
+                ledcalib_cfg = (ledcalib_cfg & 0xd0) + groupNum;
+            }
+            else if (ledcalib_group_sel.Value < 13) //bit[2:0] pulse address for mux chip, {bit[5],bit[3]}==01 mux2 enable
+            {
+                groupNum = int.Parse((ledcalib_group_sel.Value - 7).ToString());
+                ledcalib_cfg = (ledcalib_cfg & 0xd0) + groupNum + 0b001000;
+            }
+            else
+            {
+                groupNum = int.Parse((ledcalib_group_sel.Value - 13).ToString());//bit[2:0] pulse address for mux chip, {bit[5],bit[3]}==10 mux3 enable
+                ledcalib_cfg = (ledcalib_cfg & 0xd0) + groupNum + 0b100000;
+            }
+
+            //ledcalib_cfg = (ledcalib_cfg & 0xf0) + groupNum;
 
             byte[] cmdbytes = new byte[2];
 
