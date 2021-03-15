@@ -46,7 +46,12 @@ namespace SPIROC_DAQ
             int bit_length = 0;
             foreach (IBitBlock chip in chipChain)
             {
-                bit_As_Char.Append(chip.string_transform());
+                int reversed_bit_num = 194;
+                string bit_reversed_buf = chip.string_transform().ToString();
+                int reversed_bit_length = bit_reversed_buf.Length;
+                //string bit_reversed = bit_reversed_buf.Substring(reversed_bit_length - reversed_bit_num, reversed_bit_num) + bit_reversed_buf.Substring(0, reversed_bit_length -  reversed_bit_num);
+                string bit_reversed = bit_reversed_buf;
+                bit_As_Char.Append(bit_reversed);
             }
 
 

@@ -2259,6 +2259,7 @@ namespace SPIROC_DAQ
         private void task_stop_btn_Click(object sender, EventArgs e)
         {
             specialTaskTks.Cancel();
+            dataAcqTks.Cancel();
             textBox1.AppendText("Special Task stop\n");
             Acq_status_label.Text = "IDLE";
             Acq_status_label.ForeColor = Color.Black;
@@ -3250,7 +3251,7 @@ namespace SPIROC_DAQ
             if (ledcalib_group_sel.Value < 7) //bit[2:0] pulse address for mux chip, {bit[5],bit[3]}==00 mux1 enable
             {
                 groupNum = int.Parse((ledcalib_group_sel.Value - 1).ToString());
-                ledcalib_cfg = (ledcalib_cfg & 0xd0) + groupNum;
+                ledcalib_cfg = (ledcalib_cfg & 0xd0) + groupNum + 0b000000;
             }
             else if (ledcalib_group_sel.Value < 13) //bit[2:0] pulse address for mux chip, {bit[5],bit[3]}==01 mux2 enable
             {
