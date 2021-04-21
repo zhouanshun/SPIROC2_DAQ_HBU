@@ -525,90 +525,98 @@ namespace SPIROC_DAQ
                 Acq_status_label.Text = "Temperature Read";
                 Acq_status_label.ForeColor = Color.Turquoise;
                 int count = 0;
+                int pcaAddr = 0;
                 while(token.IsCancellationRequested != true)
                 {
 
                     // Configure the register which is going to send to TMP
-                    CommandSend(0x1804, 2); // Point at High byte reg in FPGA
-                    CommandSend(0x180e, 2); // write
-                    CommandSend(0x1805, 2); // Point at Low byte reg in FPGA
-                    CommandSend(0x1820, 2); // write
-
-                    textBox1.AppendText("Set the Write Register as 0x0e20\n");
-
-
-                    // If you need more details, please check command table in "cmd_datasheet.docx", or contact me, beibei@mail.ustc.edu.cn
-
-                    // Tell all Tmp Devices run a temp. measure shot
-                    CommandSend(0x1806, 2); // Point at PCA register in FPGA
-                    CommandSend(0x18ff, 2); // Select all channel
-                    CommandSend(0x1803, 2); // Point at Op Register in FPGA
-                    CommandSend(0x1802, 2); // Set Op as write PCA reg
-                    CommandSend(0x1700, 2); // Execute
-                    textBox1.AppendText("All channel selected.\n");
-                    Thread.Sleep(1);
-
-
-                    CommandSend(0x1801, 2); // Point at TMP reg reg in FPGA
-                    CommandSend(0x1801, 2); // Select configure reg in TMP
-                    CommandSend(0x1803, 2); // Point at Op Reg in FPGA
-                    CommandSend(0x1801, 2); // Write TMP Register
-
-                    CommandSend(0x1802, 2); // Point at TMP addr reg in FPGA
-                    CommandSend(0x1800, 2); // Select TMP whose addr is 0;
-                    CommandSend(0x1700, 2); // Execute
-                    textBox1.AppendText("TMP which address is 0 is acquiring temp. value\n");
-
-                    Thread.Sleep(1);
-
-                    CommandSend(0x1802, 2);
-                    CommandSend(0x1801, 2); // Select TMP whose addr is 1;
-                    CommandSend(0x1700, 2); // Let TMP get temp. value
-                    textBox1.AppendText("TMP which address is 1 is acquiring temp. value\n");
-                    Thread.Sleep(1);
-                    // Let TMP reg pointer point at temp. reg.
-                    CommandSend(0x1801, 2);
-                    CommandSend(0x1800, 2);
-                    CommandSend(0x1803, 2);
-                    CommandSend(0x1803, 2);
-                    CommandSend(0x1700, 2);
-
-
-                    Thread.Sleep(1);
-
-                    CommandSend(0x1802, 2);
-                    CommandSend(0x1800, 2);
-                    CommandSend(0x1700, 2);
-                    textBox1.AppendText("All reg in temp. sensor has pointed at temp. reg. \n");
-
-                    for (I2CSwitch_chn = 0; I2CSwitch_chn < 8; I2CSwitch_chn++)
+                    pcaAddr = 0;
+                    for (pcaAddr = 0; pcaAddr < 3; pcaAddr = pcaAddr + 1)
                     {
-                        // Connect PCA chn
-                        CommandSend(0x1806, 2);
-                        CommandSend(0x1800 + (1 << I2CSwitch_chn), 2);
-                        CommandSend(0x1803, 2);
-                        CommandSend(0x1802, 2);
-                        CommandSend(0x1700, 2);
-                        textBox1.AppendText("Channel " + I2CSwitch_chn + " has been selected.\n");
+                        CommandSend(0x1807, 2); // chose which PCA to be selected
+                        CommandSend(0x1871, 2); // write
+                        CommandSend(0x1804, 2); // Point at High byte reg in FPGA
+                        CommandSend(0x180e, 2); // write
+                        CommandSend(0x1805, 2); // Point at Low byte reg in FPGA
+                        CommandSend(0x1820, 2); // write
+
+                        textBox1.AppendText("Set the Write Register as 0x0e20\n");
+
+
+                        // If you need more details, please check command table in "cmd_datasheet.docx", or contact me, beibei@mail.ustc.edu.cn
+
+                        // Tell all Tmp Devices run a temp. measure shot
+                        CommandSend(0x1806, 2); // Point at PCA register in FPGA
+                        CommandSend(0x18ff, 2); // Select all channel
+                        CommandSend(0x1803, 2); // Point at Op Register in FPGA
+                        CommandSend(0x1802, 2); // Set Op as write PCA reg
+                        CommandSend(0x1700, 2); // Execute
+                        textBox1.AppendText("All channel selected.\n");
+                        Thread.Sleep(1);
+
+
+                        CommandSend(0x1801, 2); // Point at TMP reg reg in FPGA
+                        CommandSend(0x1801, 2); // Select configure reg in TMP
+                        CommandSend(0x1803, 2); // Point at Op Reg in FPGA
+                        CommandSend(0x1801, 2); // Write TMP Register
+
+                        CommandSend(0x1802, 2); // Point at TMP addr reg in FPGA
+                        CommandSend(0x1800, 2); // Select TMP whose addr is 0;
+                        CommandSend(0x1700, 2); // Execute
+                        textBox1.AppendText("TMP which address is 0 is acquiring temp. value\n");
 
                         Thread.Sleep(1);
 
-                        // Prepare to temp. read
-                        CommandSend(0x1803, 2);
+                        CommandSend(0x1802, 2);
+                        CommandSend(0x1801, 2); // Select TMP whose addr is 1;
+                        CommandSend(0x1700, 2); // Let TMP get temp. value
+                        textBox1.AppendText("TMP which address is 1 is acquiring temp. value\n");
+                        Thread.Sleep(1);
+                        // Let TMP reg pointer point at temp. reg.
+                        CommandSend(0x1801, 2);
                         CommandSend(0x1800, 2);
+                        CommandSend(0x1803, 2);
+                        CommandSend(0x1803, 2);
+                        CommandSend(0x1700, 2);
 
-                        for (Tmp117Addr = 0; Tmp117Addr < 2; Tmp117Addr++)
+
+                        Thread.Sleep(1);
+
+                        CommandSend(0x1802, 2);
+                        CommandSend(0x1800, 2);
+                        CommandSend(0x1700, 2);
+                        textBox1.AppendText("All reg in temp. sensor has pointed at temp. reg. \n");
+
+                        for (I2CSwitch_chn = 0; I2CSwitch_chn < 8; I2CSwitch_chn++)
                         {
-
+                            // Connect PCA chn
+                            CommandSend(0x1806, 2);
+                            CommandSend(0x1800 + (1 << I2CSwitch_chn), 2);
+                            CommandSend(0x1803, 2);
                             CommandSend(0x1802, 2);
-                            CommandSend(0x1800 + (byte)Tmp117Addr, 2);
                             CommandSend(0x1700, 2);
-                            textBox1.AppendText("Sensor whose address is " + Tmp117Addr + " has been read.\n");
+                            textBox1.AppendText("Channel " + I2CSwitch_chn + " has been selected.\n");
+
                             Thread.Sleep(1);
+
+                            // Prepare to temp. read
+                            CommandSend(0x1803, 2);
+                            CommandSend(0x1800, 2);
+
+                            for (Tmp117Addr = 0; Tmp117Addr < 2; Tmp117Addr++)
+                            {
+
+                                CommandSend(0x1802, 2);
+                                CommandSend(0x1800 + (byte)Tmp117Addr, 2);
+                                CommandSend(0x1700, 2);
+                                textBox1.AppendText("Sensor whose address is " + Tmp117Addr + " has been read.\n");
+                                Thread.Sleep(1);
+                            }
                         }
+                        count++;
+                        textBox1.AppendText(count + " temperature point(s) have been get. \n");
+                        //Thread.Sleep(5000); // interval between acquisition
                     }
-                    count++;
-                    textBox1.AppendText(count + " temperature point(s) have been get. \n");
                     Thread.Sleep(5000); // interval between acquisition
                 }
                 textBox1.AppendText("Temperature Monitoring Done.\n");
@@ -1774,7 +1782,7 @@ namespace SPIROC_DAQ
                 int byte_count = 0;
 
                 byte[] cmdBytes = new byte[2];
-                byte[] bit_block = new byte[1000];  //SPIROC2E has 992 Probe config bit, 992 * 6 / 8 = 744 , need 744 bytes
+                byte[] bit_block = new byte[1200];  //SPIROC2E has 992 Probe config bit, 992 * 9 / 8 = 1116 , need 1200 bytes
                 probeManager.clearChip();
                 for (int i = 0; i < chip_num_input.Value; i++)
                 {
@@ -1788,7 +1796,7 @@ namespace SPIROC_DAQ
                 cmdBytes[1] = 0x05;
                 cmdBytes[0] = 0x01;
                 CommandSend(cmdBytes, 2);
-                
+                Thread.Sleep(100);
                 // send config data
                 cmdBytes[1] = 0x03;
                 for (int i = 0; i < byte_count; i++)

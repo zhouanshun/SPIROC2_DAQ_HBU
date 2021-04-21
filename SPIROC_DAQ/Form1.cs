@@ -68,6 +68,9 @@ namespace SPIROC_DAQ
         SC_model_2E slowConfig_2E_4 = new SC_model_2E();
         SC_model_2E slowConfig_2E_5 = new SC_model_2E();
         SC_model_2E slowConfig_2E_6 = new SC_model_2E();
+        SC_model_2E slowConfig_2E_7 = new SC_model_2E();
+        SC_model_2E slowConfig_2E_8 = new SC_model_2E();
+        SC_model_2E slowConfig_2E_9 = new SC_model_2E();
         Probe_2E Probe_config = new Probe_2E();
         private DateTime startTime;
         // recording information such as slow control config of every data;
@@ -104,6 +107,9 @@ namespace SPIROC_DAQ
             slowConfig_2E_store.Add(slowConfig_2E_4);
             slowConfig_2E_store.Add(slowConfig_2E_5);
             slowConfig_2E_store.Add(slowConfig_2E_6);
+            slowConfig_2E_store.Add(slowConfig_2E_7);
+            slowConfig_2E_store.Add(slowConfig_2E_8);
+            slowConfig_2E_store.Add(slowConfig_2E_9);
             if (version_num == 1)
             {
                 slowConfig = slowConfig_2B_store[0];
@@ -168,7 +174,7 @@ namespace SPIROC_DAQ
             int byte_count = 0;
 
             byte[] cmdBytes = new byte[2];
-            byte[] bit_block = new byte[1000];  //SPIROC2b has 929 config bit, 929 / 8 = 116 ... 1, need 117 bytes, SPIROC2E need 1186 / 8 = 148 ... 2, so 149 bytes
+            byte[] bit_block = new byte[2000];  //SPIROC2b has 929 config bit, 929 / 8 = 116 ... 1, need 117 bytes, SPIROC2E need 1186 / 8 = 148 ... 2, so 149 bytes
 
             List<SC_model> slowConfigTmpChain2B = new List<SC_model>();
             List<SC_model_2E> slowConfigTmpChain2E = new List<SC_model_2E>();
@@ -246,6 +252,7 @@ namespace SPIROC_DAQ
             for (int i = 0; i < byte_count; i++)
             {
                 cmdBytes[0] = bit_block[i];
+                //cmdBytes[0] = 0xff;
                 CommandSend(cmdBytes, 2);
                 //Thread.Sleep(100);
             }
@@ -2597,7 +2604,7 @@ namespace SPIROC_DAQ
             int byte_count = 0;
 
             byte[] cmdBytes = new byte[2];
-            byte[] bit_block = new byte[1000];  //SPIROC2E has 992 Probe config bit, 992 * 6 / 8 = 744 , need 744 bytes
+            byte[] bit_block = new byte[1200];  //SPIROC2E has 992 Probe config bit, 992 * 9 / 8 = 1116 , need 1116 bytes
             probeManager.clearChip();
             for (int i = 0; i< chip_num_input.Value; i++)
             {
@@ -3082,7 +3089,8 @@ namespace SPIROC_DAQ
         {
             if (ecalib_en_btn.Tag.ToString() == "0")
             {
-                ecalib_cfg = (ecalib_cfg | 0x3f) | 0x01 << 6;    //  operator '<<' is prior to '|', set bit6 to 1
+                //ecalib_cfg = (ecalib_cfg | 0x3f) | 0x01 << 6;    //  operator '<<' is prior to '|', set bit6 to 1
+                ecalib_cfg = ecalib_cfg | 0x1 << 5; // auto-calib: off(0), sd: not shut down(1), enable amp and DAC
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -3100,7 +3108,8 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_en_btn.Tag.ToString() == "1")
             {
-                ecalib_cfg = ecalib_cfg & 0xbf;    //  set bit5 to 0
+                //ecalib_cfg = ecalib_cfg & 0xbf;    //  set bit5 to 0
+                ecalib_cfg = ecalib_cfg & 0x0 << 5; //shut down the amp
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -3122,7 +3131,8 @@ namespace SPIROC_DAQ
         {
             if (ecalib_mod_label.Tag.ToString() == "0")     // 0 means ext_trig mode, so let's set cfg to auto-trigger mode
             {
-                ecalib_cfg = (ecalib_cfg | 0x3f) | 0x01 << 7;    //  operator '<<' is prior to '|', set bit7(mode bit) to 1
+                //ecalib_cfg = (ecalib_cfg | 0x3f) | 0x01 << 7;    //  operator '<<' is prior to '|', set bit7(mode bit) to 1
+                ecalib_cfg = ecalib_cfg | 0x1 << 6;
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -3140,7 +3150,8 @@ namespace SPIROC_DAQ
             }
             else if (ecalib_mod_label.Tag.ToString() == "1")   // 1 means auto-trigger mode, so let's set cfg to ext-source mode
             {
-                ecalib_cfg = ecalib_cfg & 0x7f;    //  set bit5 to 0
+                //ecalib_cfg = ecalib_cfg & 0x7f;    //  set bit5 to 0
+                ecalib_cfg = ecalib_cfg & 0x0 << 6;
                 byte[] cmdbytes = new byte[2];
                 cmdbytes[1] = 0x12;
                 cmdbytes[0] = (byte)ecalib_cfg; // only use low 8 bit
@@ -3676,6 +3687,39 @@ namespace SPIROC_DAQ
                         chip_selection_combo.Text = "CHIP1";
                     }
                     break;
+                case "CHIP7":
+                    if (version_num == 2)
+                    {
+                        slowConfig = slowConfig_2E_store[6];
+                    }
+                    else if (version_num == 1)
+                    {
+                        MessageBox.Show("2B chips only have 4 pieces at most");
+                        chip_selection_combo.Text = "CHIP1";
+                    }
+                    break;
+                case "CHIP8":
+                    if (version_num == 2)
+                    {
+                        slowConfig = slowConfig_2E_store[7];
+                    }
+                    else if (version_num == 1)
+                    {
+                        MessageBox.Show("2B chips only have 4 pieces at most");
+                        chip_selection_combo.Text = "CHIP1";
+                    }
+                    break;
+                case "CHIP9":
+                    if (version_num == 2)
+                    {
+                        slowConfig = slowConfig_2E_store[8];
+                    }
+                    else if (version_num == 1)
+                    {
+                        MessageBox.Show("2B chips only have 4 pieces at most");
+                        chip_selection_combo.Text = "CHIP1";
+                    }
+                    break;
             }
             if(version_num == 1)
             {
@@ -4181,6 +4225,9 @@ namespace SPIROC_DAQ
             }
         }
 
-       
+        private void scSweepPara_select_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }//tst

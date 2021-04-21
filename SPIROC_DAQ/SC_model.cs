@@ -46,7 +46,7 @@ namespace SPIROC_DAQ
             int bit_length = 0;
             foreach (IBitBlock chip in chipChain)
             {
-                int reversed_bit_num = 194;
+                int reversed_bit_num = 194;//某些SPIROC2E的寄存链出现错位的情况
                 string bit_reversed_buf = chip.string_transform().ToString();
                 int reversed_bit_length = bit_reversed_buf.Length;
                 //string bit_reversed = bit_reversed_buf.Substring(reversed_bit_length - reversed_bit_num, reversed_bit_num) + bit_reversed_buf.Substring(0, reversed_bit_length -  reversed_bit_num);
@@ -150,7 +150,7 @@ namespace SPIROC_DAQ
 
         public bool OutputParabitblock(String path = cache_loc + "CHIPbitblock.dat")
         {
-            byte[] bit_block = new byte[1000];
+            byte[] bit_block = new byte[2000];
             int byte_count = 0;
             FileStream fileStream = new FileStream(path, FileMode.Create);
             StreamWriter sw = new StreamWriter(fileStream);
