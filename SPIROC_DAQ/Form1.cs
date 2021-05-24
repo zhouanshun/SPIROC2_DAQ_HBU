@@ -781,7 +781,7 @@ namespace SPIROC_DAQ
                     }
                     else
                     {
-                        MessageBox.Show("value need be in range of 0-63", "Value invalid");
+                        MessageBox.Show("value need be in range of 0-255", "Value invalid");
                     }
                 }
             }         
